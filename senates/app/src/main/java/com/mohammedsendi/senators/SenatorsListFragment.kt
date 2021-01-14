@@ -23,6 +23,7 @@ import com.mohammedsendi.senators.model.Senators
 import org.json.JSONObject
 import java.io.IOException
 import java.nio.charset.Charset
+import javax.security.auth.callback.Callback
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -36,21 +37,21 @@ private const val TAG = "SENATORS"
  * create an instance of this fragment.
  */
 class SenatorsListFragment : Fragment() {
+
+    interface Callbacks {
+        fun onSenatorClick(bioId : String)
+    }
+
+
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
     private lateinit var recyclerView : RecyclerView
     private lateinit var senatesList : List<Senator>
     private lateinit var senators : Senators
+    private  var callbacks : Callbacks? = null
 
 
-//    init {
-////        val jsonData = getJsonDataFromAsset(activity?.applicationContext!!,"us_senators.json")
-////        if (jsonData != null) {
-////            Log.i(TAG,jsonData)
-////        }
-//
-//    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,13 +60,20 @@ class SenatorsListFragment : Fragment() {
             param2 = it.getString(ARG_PARAM2)
         }
 
-        val jsonString = getJsonDataFromAsset(activity?.applicationContext!!,"us_senators.json")
-
-        val gSon = GsonBuilder().registerTypeAdapter(Senators::class.java, SenatorDeserializer()).create()
-         senators = gSon.fromJson<Senators>(jsonString, Senators::class.java)
+        val vm = SenatorsViewModel()
+        senatesList = vm.getSenates()
 
 
+    }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        callbacks = context as Callbacks?
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        callbacks = null
     }
 
     override fun onCreateView(
@@ -77,7 +85,7 @@ class SenatorsListFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_senators_list, container, false)
         recyclerView = view.findViewById(R.id.senators_list)
         recyclerView.layoutManager = LinearLayoutManager(context,LinearLayoutManager.VERTICAL,false)
-        recyclerView.adapter = CardAdapter(senators.senatesList)
+        recyclerView.adapter = CardAdapter(senatesList)
 
         return view
 
@@ -122,25 +130,13 @@ class SenatorsListFragment : Fragment() {
             senateDescription.text = senate.description
 
             cardView.setOnClickListener {
-
-                TODO()
+                callbacks?.onSenatorClick(senate.bioGuidedId)
                 true
             }
 
         }
     }
 
-
-    private fun getJsonDataFromAsset(context: Context, fileName: String): String? {
-        val jsonString: String
-        try {
-            jsonString = context.assets.open(fileName).bufferedReader().use { it.readText() }
-        } catch (ioException: IOException) {
-            ioException.printStackTrace()
-            return null
-        }
-        return jsonString
-    }
 
     companion object {
         /**
