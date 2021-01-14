@@ -24,6 +24,7 @@ class SenatorDeserializer : JsonDeserializer<Senators> {
         senatesObjects.forEach {
             senatorsList.add(
                 Senator(
+                    it.asJsonObject.get("person").asJsonObject.get("bioguideid").asString,
                     it.asJsonObject.get("person").asJsonObject.get("firstname").asString,
                     it.asJsonObject.get("person").asJsonObject.get("lastname").asString,
                     it.asJsonObject.get("party").asString,
